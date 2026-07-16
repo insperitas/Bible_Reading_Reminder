@@ -35,6 +35,7 @@ dependencies:
   flutter_local_notifications: ^18.0.0  # Local reminders — no Firebase/FCM
   workmanager: ^0.9.0                    # Background scheduling — AOSP WorkManager
   shared_preferences: ^2.0.0            # Lightweight local storage
+  url_launcher: ^6.3.0                  # Open URLs — MIT, no Google Play Services
 
 dev_dependencies:
   flutter_test:
