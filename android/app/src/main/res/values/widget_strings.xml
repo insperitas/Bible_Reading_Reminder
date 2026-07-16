@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_title">Daily Text</string>
+    <string name="widget_read_cta">Read Today\'s Text</string>
+    <string name="widget_character_desc">Elijah the reading reminder mascot</string>
+</resources>

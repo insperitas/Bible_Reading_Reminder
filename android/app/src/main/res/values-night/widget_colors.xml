@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Text -->
+    <color name="widget_text_primary">#FFE8E8E8</color>
+    <color name="widget_text_secondary">#FFAAAAAA</color>
+
+    <!-- CTA button -->
+    <color name="widget_button_fill">#FF5580C0</color>
+    <color name="widget_button_stroke">#FF4570B0</color>
+    <color name="widget_cta_text">#FFFFFFFF</color>
+
+    <!-- Per-state background fills (dark mode) -->
+    <color name="widget_bg_satisfied">#FF1B5E20</color>  <!-- deep green -->
+    <color name="widget_bg_happy">#FF0D47A1</color>      <!-- deep blue -->
+    <color name="widget_bg_neutral">#FF424242</color>    <!-- dark grey -->
+    <color name="widget_bg_concerned">#FFF57F17</color>  <!-- deep amber -->
+    <color name="widget_bg_sad">#FFE65100</color>        <!-- deep orange -->
+    <color name="widget_bg_dejected">#FF4E342E</color>   <!-- dark brown-red, flash-off -->
+    <color name="widget_bg_flash">#FFD84315</color>      <!-- vivid red-orange, flash-on -->
+
+    <!-- Per-state strokes (dark mode) -->
+    <color name="widget_stroke_satisfied">#FF2E7D32</color>
+    <color name="widget_stroke_happy">#FF1565C0</color>
+    <color name="widget_stroke_neutral">#FF616161</color>
+    <color name="widget_stroke_concerned">#FFE65100</color>
+    <color name="widget_stroke_sad">#FFBF360C</color>
+    <color name="widget_stroke_dejected">#FF3E2723</color>
+    <color name="widget_stroke_flash">#FFB71C1C</color>
+</resources>

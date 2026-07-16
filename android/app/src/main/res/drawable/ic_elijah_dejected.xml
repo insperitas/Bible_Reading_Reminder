@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Elijah — DEJECTED state (6pm onwards, not yet read).
+  Deep grief brow. Near-closed eye. Big frown. Teardrop.
+  Beard has given up and droops STRAIGHT BACK — surrendered to despair.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="80dp"
+    android:height="96dp"
+    android:viewportWidth="80"
+    android:viewportHeight="96">
+
+    <!-- J-profile head (skin) -->
+    <path
+        android:fillColor="#F5C090"
+        android:pathData="M 58,6 C 68,4 74,12 74,24 L 74,56 C 74,70 66,78 52,80 C 40,82 30,76 28,66 C 28,60 32,56 38,58 L 38,50 C 36,46 35,40 37,34 C 40,26 48,12 58,6 Z" />
+
+    <!-- Hair -->
+    <path
+        android:fillColor="#3D2B1F"
+        android:pathData="M 50,6 C 56,2 66,6 72,16 C 74,20 72,24 70,22 C 66,14 60,8 52,8 C 48,8 44,10 42,10 L 40,6 C 44,4 48,4 50,6 Z" />
+
+    <!-- Ear -->
+    <path
+        android:fillColor="#E8B070"
+        android:pathData="M 72,42 C 78,40 80,48 76,52 C 74,54 70,52 70,46 Z" />
+
+    <!-- Nose bump -->
+    <path
+        android:strokeColor="#D4956A"
+        android:strokeWidth="2.0"
+        android:strokeLineCap="round"
+        android:pathData="M 36,48 C 34,52 36,56 39,55" />
+
+    <!-- Eyebrow: deep tragic furrow -->
+    <path
+        android:strokeColor="#3D2B1F"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M 40,26 C 42,34 51,36 55,33" />
+
+    <!-- Eye: barely open — heavy-lidded grief -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#2C1810"
+        android:strokeWidth="1.5"
+        android:pathData="M 48,38 C 52,38 55,40 55,41 C 55,43 52,44 48,44 C 44,44 41,43 41,41 C 41,40 44,38 48,38 Z" />
+    <path
+        android:fillColor="#2C1810"
+        android:pathData="M 48,39 C 50,39 53,40 53,41 C 53,43 50,44 48,44 C 46,44 43,43 43,41 C 43,40 46,39 48,39 Z" />
+    <!-- Very heavy drooping upper lid -->
+    <path
+        android:strokeColor="#2C1810"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M 41,40 C 45,37 51,37 55,40" />
+
+    <!-- Mouth: deep frown -->
+    <path
+        android:strokeColor="#A0522D"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M 30,66 C 33,58 41,57 46,63" />
+
+    <!-- Beard: surrendered — hanging FAR BACK under jaw -->
+    <path
+        android:fillColor="#5C3D11"
+        android:pathData="M 30,70 C 36,72 44,76 50,86 C 52,92 48,96 46,94 C 42,90 36,80 30,74 Z" />
+
+    <!-- Teardrop -->
+    <path
+        android:fillColor="#87CEEB"
+        android:pathData="M 52,44 C 51,48 49,54 51,57 C 53,54 55,48 52,44 Z" />
+
+</vector>

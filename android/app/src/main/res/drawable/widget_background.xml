@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HAPPY state background — light blue / deep blue in dark mode -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/widget_bg_happy" />
+    <stroke android:width="1dp" android:color="@color/widget_stroke_happy" />
+    <corners android:radius="12dp" />
+</shape>

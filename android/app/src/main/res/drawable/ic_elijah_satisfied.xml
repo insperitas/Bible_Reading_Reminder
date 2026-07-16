@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Elijah — SATISFIED state (user has read today's text).
+  J-profile facing left: vertical stroke = back of head/neck, hook = jaw/chin.
+  Beard points UP-FORWARD — enthusiastic, proud.
+  Eye is closed in a happy crescent. Gold sparkle accent.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="80dp"
+    android:height="96dp"
+    android:viewportWidth="80"
+    android:viewportHeight="96">
+
+    <!-- J-profile head (skin) -->
+    <path
+        android:fillColor="#F5C090"
+        android:pathData="M 58,6 C 68,4 74,12 74,24 L 74,56 C 74,70 66,78 52,80 C 40,82 30,76 28,66 C 28,60 32,56 38,58 L 38,50 C 36,46 35,40 37,34 C 40,26 48,12 58,6 Z" />
+
+    <!-- Hair -->
+    <path
+        android:fillColor="#3D2B1F"
+        android:pathData="M 50,6 C 56,2 66,6 72,16 C 74,20 72,24 70,22 C 66,14 60,8 52,8 C 48,8 44,10 42,10 L 40,6 C 44,4 48,4 50,6 Z" />
+
+    <!-- Ear -->
+    <path
+        android:fillColor="#E8B070"
+        android:pathData="M 72,42 C 78,40 80,48 76,52 C 74,54 70,52 70,46 Z" />
+
+    <!-- Nose bump -->
+    <path
+        android:strokeColor="#D4956A"
+        android:strokeWidth="2.0"
+        android:strokeLineCap="round"
+        android:pathData="M 36,48 C 34,52 36,56 39,55" />
+
+    <!-- Eyebrow: high arched (elated) -->
+    <path
+        android:strokeColor="#3D2B1F"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M 41,27 C 45,22 51,22 55,27" />
+
+    <!-- Eye: closed happy crescent -->
+    <path
+        android:strokeColor="#2C1810"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M 42,37 C 45,32 51,32 54,37" />
+
+    <!-- Mouth: big satisfied smile -->
+    <path
+        android:strokeColor="#A0522D"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M 30,62 C 34,70 42,72 46,66" />
+
+    <!-- Beard: pointing UP-FORWARD (enthusiastic!) -->
+    <path
+        android:fillColor="#5C3D11"
+        android:pathData="M 30,68 C 24,66 16,58 10,50 C 8,46 12,42 16,46 C 20,50 24,60 28,66 Z" />
+
+    <!-- Gold sparkle (satisfied glow near eye) -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M 58,24 L 59.5,28 L 64,29 L 59.5,30 L 58,34 L 56.5,30 L 52,29 L 56.5,28 Z" />
+
+</vector>

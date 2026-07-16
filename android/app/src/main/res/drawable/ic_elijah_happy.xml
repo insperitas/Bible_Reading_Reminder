@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Elijah — HAPPY state (morning, not yet read).
+  Beard points FORWARD (left) — relaxed and ready for the day.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="80dp"
+    android:height="96dp"
+    android:viewportWidth="80"
+    android:viewportHeight="96">
+
+    <!-- J-profile head (skin) -->
+    <path
+        android:fillColor="#F5C090"
+        android:pathData="M 58,6 C 68,4 74,12 74,24 L 74,56 C 74,70 66,78 52,80 C 40,82 30,76 28,66 C 28,60 32,56 38,58 L 38,50 C 36,46 35,40 37,34 C 40,26 48,12 58,6 Z" />
+
+    <!-- Hair -->
+    <path
+        android:fillColor="#3D2B1F"
+        android:pathData="M 50,6 C 56,2 66,6 72,16 C 74,20 72,24 70,22 C 66,14 60,8 52,8 C 48,8 44,10 42,10 L 40,6 C 44,4 48,4 50,6 Z" />
+
+    <!-- Ear -->
+    <path
+        android:fillColor="#E8B070"
+        android:pathData="M 72,42 C 78,40 80,48 76,52 C 74,54 70,52 70,46 Z" />
+
+    <!-- Nose bump -->
+    <path
+        android:strokeColor="#D4956A"
+        android:strokeWidth="2.0"
+        android:strokeLineCap="round"
+        android:pathData="M 36,48 C 34,52 36,56 39,55" />
+
+    <!-- Eyebrow: gently arched -->
+    <path
+        android:strokeColor="#3D2B1F"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M 41,30 C 45,26 51,26 55,30" />
+
+    <!-- Eye: open -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#2C1810"
+        android:strokeWidth="1.5"
+        android:pathData="M 48,33 C 52,33 55,35 55,37 C 55,40 52,42 48,42 C 44,42 41,40 41,37 C 41,35 44,33 48,33 Z" />
+    <path
+        android:fillColor="#2C1810"
+        android:pathData="M 48,35 C 50,35 52,36 52,37 C 52,39 50,40 48,40 C 46,40 44,39 44,37 C 44,36 46,35 48,35 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 46,35 C 47,35 48,36 48,37 C 48,38 47,38 46,38 C 45,38 44,37 44,37 C 44,36 45,35 46,35 Z" />
+
+    <!-- Mouth: smile -->
+    <path
+        android:strokeColor="#A0522D"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M 32,62 C 35,67 41,68 44,65" />
+
+    <!-- Beard: pointing FORWARD (left) -->
+    <path
+        android:fillColor="#5C3D11"
+        android:pathData="M 28,70 C 22,72 14,68 10,64 C 8,60 12,56 16,58 C 20,60 24,66 28,68 Z" />
+
+</vector>
