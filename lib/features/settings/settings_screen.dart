@@ -45,8 +45,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     super.initState();
     _configs = widget.settings.allConfigs;
     WidgetsBinding.instance.addObserver(this);
-    // Check if the app was opened from the widget's '+ Extra' button.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkWidgetIntent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Refresh the home screen widget tree image now that the Flutter view exists.
+      unawaited(updateHomeWidget(
+        treeState: widget.treeService.state,
+        streak: ReadingProgressService(widget.settings).currentDay,
+      ));
+      _checkWidgetIntent();
+    });
   }
 
   @override
@@ -63,7 +69,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _checkWidgetIntent() async {
     try {
       final screen = await _channel.invokeMethod<String>('getTargetScreen');
-      if (screen == 'extra' && mounted) {
+      if (!mounted) return;
+      if (screen == 'extra') {
         await widget.treeService.onExtraActivityCompleted('widgetBonus');
         setState(() {});
         unawaited(updateHomeWidget(
@@ -78,6 +85,10 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           );
         }
+      } else if (screen == 'reading') {
+        _openActivity(context, ActivityType.bibleReading);
+      } else if (screen == 'feed') {
+        _showActivityChooser(context);
       }
     } catch (_) {
       // MethodChannel not available (e.g. tests or non-Android): ignore.

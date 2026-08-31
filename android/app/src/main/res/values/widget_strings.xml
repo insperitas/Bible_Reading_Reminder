@@ -4,6 +4,9 @@
     <string name="widget_read_cta">Read Today\'s Text</string>
     <string name="widget_character_desc">Reading reminder tree</string>
     <!-- Action buttons -->
+    <string name="widget_btn_water">&#127807; Water my tree</string>
+    <string name="widget_btn_feed">&#127800; Feed my tree</string>
+    <!-- Legacy (kept for resource stability) -->
     <string name="widget_btn_daily_text">Daily\nText</string>
     <string name="widget_btn_tree">My\nTree</string>
     <string name="widget_btn_settings">Settings</string>

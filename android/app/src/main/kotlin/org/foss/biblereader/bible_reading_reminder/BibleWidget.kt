@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.widget.RemoteViews
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -35,10 +36,12 @@ class BibleWidget : AppWidgetProvider() {
     companion object {
 
         // ── Intent extras ──────────────────────────────────────────────
-        const val EXTRA_SCREEN   = "extra_screen"
-        const val SCREEN_TREE    = "tree"
+        const val EXTRA_SCREEN    = "extra_screen"
+        const val SCREEN_TREE     = "tree"
         const val SCREEN_SETTINGS = "settings"
-        const val SCREEN_EXTRA   = "extra"
+        const val SCREEN_EXTRA    = "extra"
+        const val SCREEN_READING  = "reading"
+        const val SCREEN_FEED     = "feed"
 
         // ── Date formatters ────────────────────────────────────────────
         private val URL_DATE_FORMAT     = SimpleDateFormat("yyyyMMdd",       Locale.US)
@@ -79,10 +82,17 @@ class BibleWidget : AppWidgetProvider() {
 
                 // Header
                 setTextViewText(R.id.widget_date_label, displayDate)
-                setTextViewText(R.id.widget_leaf_count,   "🌿 $leafCount/$MAX_LEAVES")
-                setTextViewText(R.id.widget_flower_count, "🌸 $flowerCount/$MAX_FLOWERS")
                 setInt(R.id.widget_root, "setBackgroundResource",
                     state.backgroundDrawableRes(flashPhase))
+
+                // Tree image — rendered by Flutter and saved to a file
+                val treeImagePath = hwPrefs.getString("tree_image", null)
+                if (treeImagePath != null) {
+                    val bitmap = BitmapFactory.decodeFile(treeImagePath)
+                    if (bitmap != null) {
+                        setImageViewBitmap(R.id.widget_tree_image, bitmap)
+                    }
+                }
 
                 // Streak
                 if (streak > 0) {
@@ -93,35 +103,16 @@ class BibleWidget : AppWidgetProvider() {
                     setViewVisibility(R.id.widget_streak, android.view.View.GONE)
                 }
 
-                // ── Button 1: Daily Text — broadcast opens URL ─────────
-                val dailyTextIntent = Intent(ReadingActionReceiver.ACTION_READ_TAPPED).apply {
-                    setPackage(context.packageName)
-                    putExtra(ReadingActionReceiver.EXTRA_URL, dailyTextUrl)
-                }
+                // ── Water: open Bible reading ──────────────────────────
                 setOnClickPendingIntent(
-                    R.id.widget_btn_daily_text,
-                    PendingIntent.getBroadcast(
-                        context, 1000 + appWidgetId, dailyTextIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                    ),
+                    R.id.widget_btn_water,
+                    appIntent(context, appWidgetId, 1000, SCREEN_READING),
                 )
 
-                // ── Button 2: My Tree — open app ──────────────────────
+                // ── Feed: open activity chooser ────────────────────────
                 setOnClickPendingIntent(
-                    R.id.widget_btn_tree,
-                    appIntent(context, appWidgetId, 2000, SCREEN_TREE),
-                )
-
-                // ── Button 3: Settings — open app ─────────────────────
-                setOnClickPendingIntent(
-                    R.id.widget_btn_settings,
-                    appIntent(context, appWidgetId, 3000, SCREEN_SETTINGS),
-                )
-
-                // ── Button 4: + Extra — open app, signal flower award ──
-                setOnClickPendingIntent(
-                    R.id.widget_btn_extra,
-                    appIntent(context, appWidgetId, 4000, SCREEN_EXTRA),
+                    R.id.widget_btn_feed,
+                    appIntent(context, appWidgetId, 2000, SCREEN_FEED),
                 )
             }
 
