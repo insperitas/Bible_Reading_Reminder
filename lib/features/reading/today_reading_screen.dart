@@ -1,7 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../shared/services/settings_service.dart';
+import '../tree/tree_state.dart';
+import '../tree/tree_state_service.dart';
+import '../tree/tree_widget.dart';
+import '../widget/widget_updater.dart';
 import 'models/reading_plan.dart';
 import 'services/jw_bible_url.dart';
 import 'services/reading_progress_service.dart';
@@ -14,9 +21,14 @@ import 'setup/reading_setup_wizard.dart';
 ///   • done     — celebratory state; shows tomorrow's reading as a teaser
 ///   • complete — whole Bible finished
 class TodayReadingScreen extends StatefulWidget {
-  const TodayReadingScreen({super.key, required this.settings});
+  const TodayReadingScreen({
+    super.key,
+    required this.settings,
+    required this.treeService,
+  });
 
   final SettingsService settings;
+  final TreeStateService treeService;
 
   @override
   State<TodayReadingScreen> createState() => _TodayReadingScreenState();
@@ -33,8 +45,14 @@ class _TodayReadingScreenState extends State<TodayReadingScreen> {
 
   Future<void> _markRead() async {
     await _progress.markTodayComplete();
+    await widget.treeService.onReadingComplete();
     // Reload progress from settings
     setState(() => _progress = ReadingProgressService(widget.settings));
+    // Sync tree state to home screen widget
+    unawaited(updateHomeWidget(
+      treeState: widget.treeService.state,
+      streak: _progress.currentDay,
+    ));
   }
 
   void _reconfigure() {
@@ -47,7 +65,10 @@ class _TodayReadingScreenState extends State<TodayReadingScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) => TodayReadingScreen(settings: widget.settings),
+                builder: (_) => TodayReadingScreen(
+                settings: widget.settings,
+                treeService: widget.treeService,
+              ),
               ),
             );
           },
@@ -80,6 +101,7 @@ class _TodayReadingScreenState extends State<TodayReadingScreen> {
               tomorrow: _progress.tomorrowAssignment,
               currentDay: _progress.currentDay - 1,
               targetDays: _progress.targetDays,
+              treeState: widget.treeService.state,
             )
           : _PendingView(
               assignment: assignment,
@@ -205,12 +227,14 @@ class _DoneView extends StatelessWidget {
     required this.tomorrow,
     required this.currentDay,
     required this.targetDays,
+    required this.treeState,
   });
 
   final DayAssignment assignment;
   final DayAssignment? tomorrow;
   final int currentDay;
   final int targetDays;
+  final TreeState treeState;
 
   @override
   Widget build(BuildContext context) {
@@ -225,16 +249,8 @@ class _DoneView extends StatelessWidget {
         children: [
           const Spacer(),
 
-          // Tick
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: colors.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.check_rounded, size: 44, color: colors.primary),
-          ),
+          // Tree mascot
+          TreeWidget(state: treeState, canvasSize: 180),
           const SizedBox(height: 20),
 
           Text(
@@ -314,10 +330,21 @@ class _ReadingUnitRow extends StatelessWidget {
   final ColorScheme colors;
   final ThemeData theme;
 
-  Future<void> _open() async {
+  Future<void> _open(BuildContext context) async {
     final url = Uri.parse(JwBibleUrl.forUnit(unit));
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+        return;
+      }
+      // Fallback to platform intent via MethodChannel
+      final channel = MethodChannel('org.foss.biblereader/daily_text');
+      await channel.invokeMethod('openUrl', {'url': url.toString()});
+    } catch (e) {
+      // Final fallback: show error so user knows
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open ${unit.label}')),
+      );
     }
   }
 
@@ -343,7 +370,7 @@ class _ReadingUnitRow extends StatelessWidget {
             tooltip: 'Open in JW Library',
             padding: const EdgeInsets.all(4),
             constraints: const BoxConstraints(),
-            onPressed: _open,
+            onPressed: () => _open(context),
           ),
         ],
       ),

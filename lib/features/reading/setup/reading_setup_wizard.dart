@@ -49,23 +49,27 @@ class _ReadingSetupWizardState extends State<ReadingSetupWizard> {
     );
   }
 
-  Future<void> _selectOrder(ReadingOrder order) async {
+  void _selectOrder(ReadingOrder order) {
     setState(() => _order = order);
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+    );
+  }
 
-    // Save to SettingsService
+  Future<void> _confirmAndSave() async {
     await widget.settings.save(
       ActivityType.bibleReading,
       ActivityConfig(
         enabled: true,
         options: {
-          'readingOrder': order.name,
+          'readingOrder': _order!.name,
           'targetDays':   _targetDays.toString(),
           'startDate':    DateTime.now().toIso8601String().substring(0, 10),
           'currentDay':   '1',
         },
       ),
     );
-
     widget.onComplete();
   }
 
@@ -83,6 +87,11 @@ class _ReadingSetupWizardState extends State<ReadingSetupWizard> {
             onSelect: _selectDuration,
           ),
           _OrderPage(onSelect: _selectOrder),
+          _ConfirmationPage(
+            targetDays: _targetDays ?? 365,
+            order: _order ?? ReadingOrder.canonical,
+            onConfirm: _confirmAndSave,
+          ),
         ],
       ),
     );
@@ -248,10 +257,13 @@ class _ChoiceCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          label,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        Flexible(
+                          child: Text(
+                            label,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (recommended) ...[
@@ -292,6 +304,106 @@ class _ChoiceCard extends StatelessWidget {
 }
 
 // ── Data helpers ──────────────────────────────────────────────────────────
+
+// ── Page 3 — Confirmation ────────────────────────────────────────────────
+
+class _ConfirmationPage extends StatelessWidget {
+  const _ConfirmationPage({
+    required this.targetDays,
+    required this.order,
+    required this.onConfirm,
+  });
+
+  final int targetDays;
+  final ReadingOrder order;
+  final VoidCallback onConfirm;
+
+  String _durationLabel() {
+    if (targetDays <= 183) return '6 months';
+    if (targetDays <= 365) return '1 year';
+    if (targetDays <= 730) return '2 years';
+    return '$targetDays days';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return _WizardShell(
+      step: '3 of 3',
+      question: "You're all set!",
+      subtext: 'Here\'s your reading plan:',
+      children: [
+        const SizedBox(height: 8),
+        _SummaryRow(
+          icon: Icons.schedule_outlined,
+          label: 'Reading period',
+          value: _durationLabel(),
+        ),
+        const SizedBox(height: 12),
+        _SummaryRow(
+          icon: Icons.menu_book_outlined,
+          label: 'Reading order',
+          value: order.displayName,
+        ),
+        const SizedBox(height: 40),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: FilledButton.icon(
+            icon: const Icon(Icons.auto_stories_outlined),
+            label: const Text('Start reading'),
+            onPressed: onConfirm,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: colors.primaryContainer,
+          child: Icon(icon, size: 20, color: colors.onPrimaryContainer),
+        ),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(color: colors.outline),
+            ),
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
 class _DurationOption {
   final String label;

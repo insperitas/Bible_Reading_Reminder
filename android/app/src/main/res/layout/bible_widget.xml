@@ -1,95 +1,181 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   4×2 home screen widget layout.
-  Horizontal: Elijah character on left, date + CTA button on right.
-  RemoteViews only supports a limited view set — LinearLayout + ImageView + TextView here.
+  Top row : date label on the left, tree leaf/flower stats on the right.
+  Bottom row: four equal action buttons — Daily Text | My Tree | Settings | + Extra
+  RemoteViews only supports a limited view set (LinearLayout, TextView, etc.).
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="10dp"
-    android:background="@drawable/widget_background"
-    android:gravity="center_vertical">
+    android:background="@drawable/widget_background">
 
-    <!-- Elijah character — updated by BibleWidget.kt via setImageViewResource -->
-    <ImageView
-        android:id="@+id/widget_character"
-        android:layout_width="72dp"
-        android:layout_height="86dp"
-        android:layout_marginEnd="10dp"
-        android:src="@drawable/ic_elijah_happy"
-        android:scaleType="fitCenter"
-        android:contentDescription="@string/widget_character_desc" />
-
-    <!-- Right column: title, date, CTA -->
+    <!-- ── Header row ─────────────────────────────────────────────────── -->
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <!-- App / section label -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/widget_title"
-            android:textSize="10sp"
-            android:textAllCaps="true"
-            android:textColor="@color/widget_text_secondary"
-            android:fontFamily="sans-serif-medium" />
-
-        <!-- Today's date -->
-        <TextView
-            android:id="@+id/widget_date_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@color/widget_text_primary"
-            android:fontFamily="sans-serif" />
-
-        <!-- Streak counter — hidden when streak = 0 -->
-        <TextView
-            android:id="@+id/widget_streak"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:textSize="11sp"
-            android:textColor="@color/widget_text_secondary"
-            android:fontFamily="sans-serif" />
-
-        <!-- CTA button — minimum 44dp tall for touch target compliance -->
+        <!-- Date + streak (left) -->
         <LinearLayout
-            android:id="@+id/widget_read_button"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/widget_button_background"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp">
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
-                android:layout_width="0dp"
+                android:id="@+id/widget_date_label"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/widget_read_cta"
-                android:textSize="12sp"
-                android:textColor="@color/widget_cta_text"
-                android:fontFamily="sans-serif-medium" />
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/widget_text_primary"
+                android:fontFamily="sans-serif" />
+
+            <!-- Streak — hidden when 0 -->
+            <TextView
+                android:id="@+id/widget_streak"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="11sp"
+                android:textColor="@color/widget_text_secondary"
+                android:fontFamily="sans-serif" />
+
+        </LinearLayout>
+
+        <!-- Tree stats (right): leaves + flowers -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end">
+
+            <TextView
+                android:id="@+id/widget_leaf_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11sp"
+                android:textColor="@color/widget_text_secondary"
+                android:fontFamily="sans-serif" />
+
+            <TextView
+                android:id="@+id/widget_flower_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:textSize="11sp"
+                android:textColor="@color/widget_text_secondary"
+                android:fontFamily="sans-serif" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ── Action buttons row ─────────────────────────────────────────── -->
+    <!-- Each button is a LinearLayout (min 44dp touch target). -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="6dp">
+
+        <!-- 1 · Daily Text -->
+        <LinearLayout
+            android:id="@+id/widget_btn_daily_text"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_button_background"
+            android:gravity="center"
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="→"
-                android:textSize="13sp"
+                android:text="@string/widget_btn_daily_text"
+                android:textSize="9sp"
                 android:textColor="@color/widget_cta_text"
-                android:fontFamily="sans-serif" />
+                android:fontFamily="sans-serif-medium"
+                android:textAlignment="center"
+                android:maxLines="2" />
+
+        </LinearLayout>
+
+        <View android:layout_width="4dp" android:layout_height="match_parent" />
+
+        <!-- 2 · My Tree -->
+        <LinearLayout
+            android:id="@+id/widget_btn_tree"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_button_background"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/widget_btn_tree"
+                android:textSize="9sp"
+                android:textColor="@color/widget_cta_text"
+                android:fontFamily="sans-serif-medium"
+                android:textAlignment="center"
+                android:maxLines="2" />
+
+        </LinearLayout>
+
+        <View android:layout_width="4dp" android:layout_height="match_parent" />
+
+        <!-- 3 · Settings -->
+        <LinearLayout
+            android:id="@+id/widget_btn_settings"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_button_background"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/widget_btn_settings"
+                android:textSize="9sp"
+                android:textColor="@color/widget_cta_text"
+                android:fontFamily="sans-serif-medium"
+                android:textAlignment="center"
+                android:maxLines="2" />
+
+        </LinearLayout>
+
+        <View android:layout_width="4dp" android:layout_height="match_parent" />
+
+        <!-- 4 · + Extra (log an extra activity to earn a flower) -->
+        <LinearLayout
+            android:id="@+id/widget_btn_extra"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_button_background"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/widget_btn_extra"
+                android:textSize="9sp"
+                android:textColor="@color/widget_cta_text"
+                android:fontFamily="sans-serif-medium"
+                android:textAlignment="center"
+                android:maxLines="2" />
 
         </LinearLayout>
 

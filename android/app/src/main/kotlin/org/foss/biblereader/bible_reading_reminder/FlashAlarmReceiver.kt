@@ -43,7 +43,7 @@ class FlashAlarmReceiver : BroadcastReceiver() {
         private const val FLASH_INTERVAL_MS = 60_000L  // ~60 s between colour changes
         private const val REQUEST_CODE = 9001
 
-        private fun buildPendingIntent(context: Context, flags: Int): PendingIntent =
+        private fun buildPendingIntent(context: Context, flags: Int): PendingIntent? =
             PendingIntent.getBroadcast(
                 context,
                 REQUEST_CODE,
@@ -53,10 +53,12 @@ class FlashAlarmReceiver : BroadcastReceiver() {
 
         fun scheduleNext(context: Context) {
             val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val pi = buildPendingIntent(context, PendingIntent.FLAG_UPDATE_CURRENT)
+                ?: return
             am.set(
                 AlarmManager.RTC_WAKEUP,
                 System.currentTimeMillis() + FLASH_INTERVAL_MS,
-                buildPendingIntent(context, PendingIntent.FLAG_UPDATE_CURRENT),
+                pi,
             )
         }
 
@@ -68,7 +70,8 @@ class FlashAlarmReceiver : BroadcastReceiver() {
 
         fun cancel(context: Context) {
             val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            am.cancel(buildPendingIntent(context, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_UPDATE_CURRENT))
+            val pi = buildPendingIntent(context, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_UPDATE_CURRENT)
+            if (pi != null) am.cancel(pi)
         }
     }
 }

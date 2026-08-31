@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Flutter: Build debug APK",
+      "type": "shell",
+      "command": "flutter",
+      "args": ["build", "apk", "--debug"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Install debug APK on device",
+      "type": "shell",
+      "command": "adb",
+      "args": ["install", "-r", "build/app/outputs/flutter-apk/app-debug.apk"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Build and install debug APK",
+      "dependsOn": [
+        "Flutter: Build debug APK",
+        "Android: Install debug APK on device"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,11 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../shared/models/activity_config.dart';
 import '../../shared/models/activity_type.dart';
+import '../../shared/services/jw_meeting_url.dart';
 import '../../shared/services/settings_service.dart';
 import '../reading/services/reading_progress_service.dart';
 import '../reading/setup/reading_setup_wizard.dart';
 import '../reading/today_reading_screen.dart';
+import '../tree/tree_state_service.dart';
+import '../tree/tree_widget.dart';
+import '../widget/widget_updater.dart';
 
 /// Main settings screen — shown when the user opens the app.
 ///
@@ -13,21 +21,67 @@ import '../reading/today_reading_screen.dart';
 /// Tapping a row (when enabled) will navigate to that activity's detail
 /// settings page (to be built as each activity is designed).
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.settings});
+  const SettingsScreen({
+    super.key,
+    required this.settings,
+    required this.treeService,
+  });
 
   final SettingsService settings;
+  final TreeStateService treeService;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen>
+    with WidgetsBindingObserver {
   late Map<ActivityType, ActivityConfig> _configs;
+
+  static const _channel = MethodChannel('org.foss.biblereader/daily_text');
 
   @override
   void initState() {
     super.initState();
     _configs = widget.settings.allConfigs;
+    WidgetsBinding.instance.addObserver(this);
+    // Check if the app was opened from the widget's '+ Extra' button.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkWidgetIntent());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _checkWidgetIntent();
+  }
+
+  Future<void> _checkWidgetIntent() async {
+    try {
+      final screen = await _channel.invokeMethod<String>('getTargetScreen');
+      if (screen == 'extra' && mounted) {
+        await widget.treeService.onExtraActivityCompleted('widgetBonus');
+        setState(() {});
+        unawaited(updateHomeWidget(
+          treeState: widget.treeService.state,
+          streak: 0,
+        ));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Extra activity logged — flower earned! 🌸'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (_) {
+      // MethodChannel not available (e.g. tests or non-Android): ignore.
+    }
   }
 
   Future<void> _toggle(ActivityType type, bool enabled) async {
@@ -36,6 +90,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _configs = widget.settings.allConfigs;
     });
   }
+
+  bool get _anyEnabled => _configs.values.any((c) => c.enabled);
 
   @override
   Widget build(BuildContext context) {
@@ -47,14 +103,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: theme.colorScheme.primaryContainer,
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.fromLTRB(0, 12, 0, 100),
         children: [
+          // ── Tree mascot dashboard ──────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Center(
+              child: TreeWidget(state: widget.treeService.state),
+            ),
+          ),
+          const Divider(height: 32),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Text(
-              'Activities to track',
+              'What would you like to track?',
               style: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.primary,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Text(
+              'Switch on the activities you want reminders for. '
+              'Tap any enabled row to configure it.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
               ),
             ),
           ),
@@ -64,8 +138,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               config: _configs[type]!,
               onToggle: (v) => _toggle(type, v),
               onTap: _configs[type]!.enabled
-                  ? () => _openDetail(context, type)
+                  ? () => _openSettings(context, type)
                   : null,
+              subtitle: _planSubtitle(type),
             ),
           const Divider(height: 32),
           Padding(
@@ -79,18 +154,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+      // "Let's go" button appears once at least one activity is enabled
+      floatingActionButton: _anyEnabled
+          ? FloatingActionButton.extended(
+              onPressed: () => _showActivityChooser(context),
+              icon: const Icon(Icons.arrow_forward),
+              label: const Text("Let's go"),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  void _openDetail(BuildContext context, ActivityType type) {
+  ActivityType? get _firstEnabled =>
+      _configs.entries.where((e) => e.value.enabled).map((e) => e.key).firstOrNull;
+
+  String? _planSubtitle(ActivityType type) {
+    if (type != ActivityType.bibleReading) return null;
+    final progress = ReadingProgressService(widget.settings);
+    if (!progress.isConfigured) return null;
+    return 'Bible in ${progress.targetLabel()} · ${progress.readingOrder.displayName}';
+  }
+
+  Future<void> _openActivity(BuildContext context, ActivityType type) async {
     switch (type) {
+      case ActivityType.dailyText:
+        try {
+          await _channel.invokeMethod('openDailyText');
+          // Award a flower for completing the Daily Text today.
+          await widget.treeService.onExtraActivityCompleted('dailyText');
+          if (mounted) setState(() {}); // refresh tree
+          // Sync tree state to home screen widget.
+          unawaited(updateHomeWidget(
+            treeState: widget.treeService.state,
+            streak: 0,
+          ));
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Could not open Daily Text')),
+            );
+          }
+        }
+        return;
+
       case ActivityType.bibleReading:
         final progress = ReadingProgressService(widget.settings);
         if (progress.isConfigured) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => TodayReadingScreen(settings: widget.settings),
+              builder: (_) => TodayReadingScreen(
+                settings: widget.settings,
+                treeService: widget.treeService,
+              ),
             ),
           ).then((_) => setState(() => _configs = widget.settings.allConfigs));
         } else {
@@ -107,14 +224,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           );
         }
+        return;
+
       default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${type.displayName} settings — coming soon'),
-            behavior: SnackBarBehavior.floating,
+        final url = Uri.parse(JwMeetingUrl.nextMeeting());
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open meeting page')),
+          );
+        }
+        return;
+    }
+  }
+
+  void _openSettings(BuildContext context, ActivityType type) {
+    switch (type) {
+      case ActivityType.bibleReading:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ReadingSetupWizard(
+              settings: widget.settings,
+              onComplete: () {
+                Navigator.pop(context);
+                setState(() => _configs = widget.settings.allConfigs);
+              },
+            ),
           ),
         );
+        return;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${type.displayName} settings — coming soon')),
+        );
+        return;
     }
+  }
+
+  void _showActivityChooser(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (_) {
+        final enabled = _configs.entries.where((e) => e.value.enabled).map((e) => e.key).toList();
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final type in enabled)
+                ListTile(
+                  title: Text(type.displayName),
+                  subtitle: Text(type.description),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.settings_outlined),
+                        tooltip: 'Settings',
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _openSettings(context, type);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.open_in_new),
+                        tooltip: 'Open',
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _openActivity(context, type);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -124,12 +312,14 @@ class _ActivityTile extends StatelessWidget {
     required this.config,
     required this.onToggle,
     this.onTap,
+    this.subtitle,
   });
 
   final ActivityType type;
   final ActivityConfig config;
   final ValueChanged<bool> onToggle;
   final VoidCallback? onTap;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +339,7 @@ class _ActivityTile extends StatelessWidget {
       ),
       title: Text(type.displayName),
       subtitle: Text(
-        type.description,
+        subtitle ?? type.description,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),

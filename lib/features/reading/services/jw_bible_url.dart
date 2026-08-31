@@ -18,7 +18,8 @@ abstract final class JwBibleUrl {
   /// URL for a specific verse (defaults to verse 1 = start of chapter).
   static String forVerse(String bookName, int chapter, {int verse = 1}) {
     final bookNum = bookNumbers[bookName] ?? 1;
-    final ref = bookNum.toString().padLeft(3, '0') +
+    // Use 2-digit book numbers (books 1..66) to avoid unnecessary leading zeros.
+    final ref = bookNum.toString().padLeft(2, '0') +
         chapter.toString().padLeft(3, '0') +
         verse.toString().padLeft(3, '0');
     return '$_base&bible=$ref';

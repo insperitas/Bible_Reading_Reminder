@@ -2,5 +2,10 @@
 <resources>
     <string name="widget_title">Daily Text</string>
     <string name="widget_read_cta">Read Today\'s Text</string>
-    <string name="widget_character_desc">Elijah the reading reminder mascot</string>
+    <string name="widget_character_desc">Reading reminder tree</string>
+    <!-- Action buttons -->
+    <string name="widget_btn_daily_text">Daily\nText</string>
+    <string name="widget_btn_tree">My\nTree</string>
+    <string name="widget_btn_settings">Settings</string>
+    <string name="widget_btn_extra">+&#160;Extra</string>
 </resources>

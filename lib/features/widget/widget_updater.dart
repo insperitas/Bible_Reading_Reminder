@@ -1,23 +1,25 @@
 import 'package:home_widget/home_widget.dart';
 
-/// Keys that match the shared-prefs keys read in BibleWidget.kt.
-const _kVerseText = 'widget_verse_text';
-const _kVerseRef  = 'widget_verse_ref';
-const _kStreak    = 'widget_streak';
+import '../tree/tree_state.dart';
 
-const _kAndroidWidgetName = 'org.foss.biblereader.bible_reading_reminder.BibleWidget';
+/// Keys shared with BibleWidget.kt — must stay in sync with the Kotlin side.
+const _kStreak       = 'widget_streak';
+const _kLeafCount    = 'tree_leaf_count';
+const _kFlowerCount  = 'tree_flower_count';
 
-/// Pushes [verse], [reference], and [streak] to the home screen widget via
-/// the home_widget shared-preferences bridge, then requests a redraw.
+const _kAndroidWidgetName =
+    'org.foss.biblereader.bible_reading_reminder.BibleWidget';
+
+/// Pushes [treeState] and [streak] to the home screen widget via the
+/// home_widget shared-preferences bridge, then requests a redraw.
 Future<void> updateHomeWidget({
-  required String verse,
-  required String reference,
+  required TreeState treeState,
   required int streak,
 }) async {
   await Future.wait([
-    HomeWidget.saveWidgetData<String>(_kVerseText, verse),
-    HomeWidget.saveWidgetData<String>(_kVerseRef,  reference),
-    HomeWidget.saveWidgetData<int>(_kStreak,        streak),
+    HomeWidget.saveWidgetData<int>(_kLeafCount,   treeState.leafCount),
+    HomeWidget.saveWidgetData<int>(_kFlowerCount, treeState.flowerCount),
+    HomeWidget.saveWidgetData<int>(_kStreak,      streak),
   ]);
   await HomeWidget.updateWidget(androidName: _kAndroidWidgetName);
 }
