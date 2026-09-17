@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.widget.RemoteViews
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -44,15 +43,7 @@ class BibleWidget : AppWidgetProvider() {
         const val SCREEN_FEED     = "feed"
 
         // ── Date formatters ────────────────────────────────────────────
-        private val URL_DATE_FORMAT     = SimpleDateFormat("yyyyMMdd",       Locale.US)
-        private val DISPLAY_DATE_FORMAT = SimpleDateFormat("EEEE, d MMMM",   Locale.getDefault())
-
-        // HomeWidgetPreferences keys (must match widget_updater.dart)
-        private const val HW_PREFS      = "HomeWidgetPreferences"
-        private const val KEY_LEAVES    = "tree_leaf_count"
-        private const val KEY_FLOWERS   = "tree_flower_count"
-        private const val MAX_LEAVES    = 20
-        private const val MAX_FLOWERS   = 20
+        private val DISPLAY_DATE_FORMAT = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault())
 
         fun updateWidget(
             context: Context,
@@ -61,14 +52,6 @@ class BibleWidget : AppWidgetProvider() {
         ) {
             val now         = Date()
             val displayDate = DISPLAY_DATE_FORMAT.format(now)
-            val urlDate     = URL_DATE_FORMAT.format(now)
-            val dailyTextUrl = "https://www.jw.org/finder" +
-                "?srcid=jwlshare&alias=daily-text&date=$urlDate&wtlocale=E"
-
-            // ── Read tree stats from HomeWidgetPreferences ─────────────
-            val hwPrefs     = context.getSharedPreferences(HW_PREFS, Context.MODE_PRIVATE)
-            val leafCount   = hwPrefs.getInt(KEY_LEAVES,  MAX_LEAVES)
-            val flowerCount = hwPrefs.getInt(KEY_FLOWERS, 0)
 
             // ── Streak ─────────────────────────────────────────────────
             val streak = ReadingTracker.getStreak(context)
@@ -84,15 +67,6 @@ class BibleWidget : AppWidgetProvider() {
                 setTextViewText(R.id.widget_date_label, displayDate)
                 setInt(R.id.widget_root, "setBackgroundResource",
                     state.backgroundDrawableRes(flashPhase))
-
-                // Tree image — rendered by Flutter and saved to a file
-                val treeImagePath = hwPrefs.getString("tree_image", null)
-                if (treeImagePath != null) {
-                    val bitmap = BitmapFactory.decodeFile(treeImagePath)
-                    if (bitmap != null) {
-                        setImageViewBitmap(R.id.widget_tree_image, bitmap)
-                    }
-                }
 
                 // Streak
                 if (streak > 0) {

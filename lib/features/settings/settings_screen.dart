@@ -37,6 +37,8 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen>
     with WidgetsBindingObserver {
   late Map<ActivityType, ActivityConfig> _configs;
+  static const _optMidweekDay = 'midweekDay';
+  static const _optWeekendDay = 'weekendDay';
 
   static const _channel = MethodChannel('org.foss.biblereader/daily_text');
 
@@ -181,11 +183,37 @@ class _SettingsScreenState extends State<SettingsScreen>
       _configs.entries.where((e) => e.value.enabled).map((e) => e.key).firstOrNull;
 
   String? _planSubtitle(ActivityType type) {
-    if (type != ActivityType.bibleReading) return null;
-    final progress = ReadingProgressService(widget.settings);
-    if (!progress.isConfigured) return null;
-    return 'Bible in ${progress.targetLabel()} · ${progress.readingOrder.displayName}';
+    if (type == ActivityType.bibleReading) {
+      final progress = ReadingProgressService(widget.settings);
+      if (!progress.isConfigured) return null;
+      return 'Bible in ${progress.targetLabel()} · ${progress.readingOrder.displayName}';
+    }
+    if (type == ActivityType.meetingPrep) {
+      final config = widget.settings.configFor(ActivityType.meetingPrep);
+      final midweek = _parseWeekday(config.options[_optMidweekDay], DateTime.thursday);
+      final weekend = _parseWeekday(config.options[_optWeekendDay], DateTime.sunday);
+      return 'Midweek: ${_weekdayLabel(midweek)} · Weekend: ${_weekdayLabel(weekend)}';
+    }
+    return null;
   }
+
+  int _parseWeekday(String? raw, int fallback) {
+    final parsed = int.tryParse(raw ?? '');
+    if (parsed == null) return fallback;
+    if (parsed < DateTime.monday || parsed > DateTime.sunday) return fallback;
+    return parsed;
+  }
+
+  String _weekdayLabel(int day) => switch (day) {
+        DateTime.monday => 'Monday',
+        DateTime.tuesday => 'Tuesday',
+        DateTime.wednesday => 'Wednesday',
+        DateTime.thursday => 'Thursday',
+        DateTime.friday => 'Friday',
+        DateTime.saturday => 'Saturday',
+        DateTime.sunday => 'Sunday',
+        _ => 'Thursday',
+      };
 
   Future<void> _openActivity(BuildContext context, ActivityType type) async {
     switch (type) {
@@ -237,13 +265,31 @@ class _SettingsScreenState extends State<SettingsScreen>
         }
         return;
 
+      case ActivityType.meetingPrep:
+        final config = widget.settings.configFor(ActivityType.meetingPrep);
+        final midweek = _parseWeekday(config.options[_optMidweekDay], DateTime.thursday);
+        final weekend = _parseWeekday(config.options[_optWeekendDay], DateTime.sunday);
+        final url = Uri.parse(
+          JwMeetingUrl.nextMeeting(midweekDay: midweek, weekendDay: weekend),
+        );
+        final openedExternal = await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!openedExternal) {
+          final openedInApp = await launchUrl(url);
+          if (!openedInApp && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Could not open meeting page: $url')),
+            );
+          }
+        }
+        return;
+
       default:
-        final url = Uri.parse(JwMeetingUrl.nextMeeting());
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
-        } else if (mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open meeting page')),
+            SnackBar(content: Text('Open ${type.displayName} — coming soon')),
           );
         }
         return;
@@ -262,6 +308,17 @@ class _SettingsScreenState extends State<SettingsScreen>
                 Navigator.pop(context);
                 setState(() => _configs = widget.settings.allConfigs);
               },
+            ),
+          ),
+        );
+        return;
+      case ActivityType.meetingPrep:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => _MeetingPrepSettingsScreen(
+              settings: widget.settings,
+              onSaved: () => setState(() => _configs = widget.settings.allConfigs),
             ),
           ),
         );
@@ -313,6 +370,131 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         );
       },
+    );
+  }
+}
+
+class _MeetingPrepSettingsScreen extends StatefulWidget {
+  const _MeetingPrepSettingsScreen({
+    required this.settings,
+    required this.onSaved,
+  });
+
+  final SettingsService settings;
+  final VoidCallback onSaved;
+
+  @override
+  State<_MeetingPrepSettingsScreen> createState() => _MeetingPrepSettingsScreenState();
+}
+
+class _MeetingPrepSettingsScreenState extends State<_MeetingPrepSettingsScreen> {
+  static const _optMidweekDay = 'midweekDay';
+  static const _optWeekendDay = 'weekendDay';
+
+  int _midweekDay = DateTime.thursday;
+  int _weekendDay = DateTime.sunday;
+  bool _saving = false;
+
+  static const _weekdays = <int, String>{
+    DateTime.monday: 'Monday',
+    DateTime.tuesday: 'Tuesday',
+    DateTime.wednesday: 'Wednesday',
+    DateTime.thursday: 'Thursday',
+    DateTime.friday: 'Friday',
+    DateTime.saturday: 'Saturday',
+    DateTime.sunday: 'Sunday',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    final config = widget.settings.configFor(ActivityType.meetingPrep);
+    _midweekDay = _safeDay(config.options[_optMidweekDay], DateTime.thursday);
+    _weekendDay = _safeDay(config.options[_optWeekendDay], DateTime.sunday);
+  }
+
+  int _safeDay(String? raw, int fallback) {
+    final parsed = int.tryParse(raw ?? '');
+    if (parsed == null) return fallback;
+    if (parsed < DateTime.monday || parsed > DateTime.sunday) return fallback;
+    return parsed;
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    final current = widget.settings.configFor(ActivityType.meetingPrep);
+    final options = Map<String, String>.from(current.options)
+      ..[_optMidweekDay] = _midweekDay.toString()
+      ..[_optWeekendDay] = _weekendDay.toString();
+
+    await widget.settings.save(
+      ActivityType.meetingPrep,
+      current.copyWith(enabled: true, options: options),
+    );
+
+    if (!mounted) return;
+    widget.onSaved();
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Meeting Preparation Settings')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            'Choose your congregation meeting days.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<int>(
+            value: _midweekDay,
+            decoration: const InputDecoration(
+              labelText: 'Midweek meeting day',
+              border: OutlineInputBorder(),
+            ),
+            items: _weekdays.entries
+                .map(
+                  (e) => DropdownMenuItem<int>(
+                    value: e.key,
+                    child: Text(e.value),
+                  ),
+                )
+                .toList(),
+            onChanged: (v) {
+              if (v == null) return;
+              setState(() => _midweekDay = v);
+            },
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<int>(
+            value: _weekendDay,
+            decoration: const InputDecoration(
+              labelText: 'Weekend meeting day',
+              border: OutlineInputBorder(),
+            ),
+            items: _weekdays.entries
+                .map(
+                  (e) => DropdownMenuItem<int>(
+                    value: e.key,
+                    child: Text(e.value),
+                  ),
+                )
+                .toList(),
+            onChanged: (v) {
+              if (v == null) return;
+              setState(() => _weekendDay = v);
+            },
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: _saving ? null : _save,
+            child: Text(_saving ? 'Saving...' : 'Save'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -15,8 +15,17 @@ abstract final class JwMeetingUrl {
   static const _weekendDay = DateTime.sunday;   // 7
 
   /// Returns the URL for the next upcoming meeting (midweek or weekend).
-  static String nextMeeting() {
-    final date = _nextMeetingDate(DateTime.now());
+  ///
+  /// [midweekDay] and [weekendDay] are weekday numbers using DateTime's
+  /// convention (1=Mon ... 7=Sun).
+  static String nextMeeting({
+    DateTime? from,
+    int midweekDay = DateTime.thursday,
+    int weekendDay = DateTime.sunday,
+  }) {
+    final safeMidweek = _validWeekday(midweekDay, DateTime.thursday);
+    final safeWeekend = _validWeekday(weekendDay, DateTime.sunday);
+    final date = _nextMeetingDate(from ?? DateTime.now(), safeMidweek, safeWeekend);
     return '$_base&date=${_format(date)}';
   }
 
@@ -24,18 +33,23 @@ abstract final class JwMeetingUrl {
   ///
   /// Meeting days (default): Thursday (midweek) and Sunday (weekend).
   /// If today is a meeting day, today is returned.
-  static DateTime _nextMeetingDate(DateTime from) {
+  static DateTime _nextMeetingDate(DateTime from, int midweekDay, int weekendDay) {
     final today = DateTime(from.year, from.month, from.day);
     // Check each of the next 7 days (covers any meeting-day combo).
     for (var offset = 0; offset < 7; offset++) {
       final candidate = today.add(Duration(days: offset));
-      if (candidate.weekday == _midweekDay ||
-          candidate.weekday == _weekendDay) {
+      if (candidate.weekday == midweekDay ||
+          candidate.weekday == weekendDay) {
         return candidate;
       }
     }
     // Fallback — should never be reached.
     return today;
+  }
+
+  static int _validWeekday(int value, int fallback) {
+    if (value >= DateTime.monday && value <= DateTime.sunday) return value;
+    return fallback;
   }
 
   static String _format(DateTime d) =>

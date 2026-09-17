@@ -18,7 +18,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:scaleType="fitCenter"
-        android:background="@color/widget_bg_neutral"
+        android:src="@drawable/widget_tree_placeholder"
         android:contentDescription="@string/widget_character_desc" />
 
     <!-- Date + streak -->
