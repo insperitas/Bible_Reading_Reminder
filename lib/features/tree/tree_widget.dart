@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'tree_painter.dart';
 import 'tree_state.dart';
 
 /// Displays the tree mascot with a status caption below.
@@ -25,9 +24,16 @@ class TreeWidget extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CustomPaint(
-          size: Size(canvasSize, canvasSize),
-          painter: TreePainter(state: state),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: SizedBox(
+            width: canvasSize,
+            height: canvasSize,
+            child: Image.asset(
+              _imageAssetForState(state),
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
         const SizedBox(height: 10),
         Text(
@@ -43,6 +49,16 @@ class TreeWidget extends StatelessWidget {
       ],
     );
   }
+}
+
+String _imageAssetForState(TreeState state) {
+  final leafFraction = state.leafFraction;
+  if (leafFraction >= 1.0) return 'assets/tree_photos/tree_photo_satisfied.png';
+  if (leafFraction >= 0.75) return 'assets/tree_photos/tree_photo_happy.png';
+  if (leafFraction >= 0.5) return 'assets/tree_photos/tree_photo_neutral.png';
+  if (leafFraction >= 0.25) return 'assets/tree_photos/tree_photo_concerned.png';
+  if (leafFraction > 0) return 'assets/tree_photos/tree_photo_sad.png';
+  return 'assets/tree_photos/tree_photo_dejected.png';
 }
 
 /// Compact leaf/flower counters shown below the tree.
