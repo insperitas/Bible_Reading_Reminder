@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="widget_name_standard">Bible Reading Reminder (2x4)</string>
+    <string name="widget_name_wide_4x2">Bible Reading Reminder (4x2 Wide)</string>
+    <string name="widget_name_tall_2x5">Bible Reading Reminder (2x5 Tall)</string>
     <string name="widget_title">Daily Text</string>
     <string name="widget_read_cta">Read Today\'s Text</string>
     <string name="widget_character_desc">Reading reminder tree</string>
     <!-- Action buttons -->
-    <string name="widget_btn_water">&#127807; Water my tree</string>
-    <string name="widget_btn_feed">&#127800; Feed my tree</string>
+    <string name="widget_btn_water">&#128703; Water my tree</string>
+    <string name="widget_btn_feed">&#129524; Feed my tree</string>
+    <string name="widget_btn_read_compact">&#128214; Read</string>
     <!-- Legacy (kept for resource stability) -->
     <string name="widget_btn_daily_text">Daily\nText</string>
     <string name="widget_btn_tree">My\nTree</string>

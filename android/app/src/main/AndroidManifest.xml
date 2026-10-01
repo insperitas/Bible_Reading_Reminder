@@ -42,6 +42,7 @@
         <!-- Home screen widget provider -->
         <receiver
             android:name=".BibleWidget"
+            android:label="@string/widget_name_standard"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -49,6 +50,32 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/bible_widget_info" />
+        </receiver>
+
+        <!-- Home screen widget provider (4x2 wide) -->
+        <receiver
+            android:name=".BibleWidgetWide4x2"
+            android:label="@string/widget_name_wide_4x2"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/bible_widget_info_wide_4x2" />
+        </receiver>
+
+        <!-- Home screen widget provider (2x5 tall) -->
+        <receiver
+            android:name=".BibleWidgetTall2x5"
+            android:label="@string/widget_name_tall_2x5"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/bible_widget_info_tall_2x5" />
         </receiver>
 
         <!-- Don't delete the meta-data below.

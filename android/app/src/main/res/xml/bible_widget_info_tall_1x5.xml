@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget preset: 1x5 tall column.
+  Uses the same RemoteViews layout and behavior as the default provider.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+  android:minWidth="40dp"
+  android:minHeight="320dp"
+    android:targetCellWidth="1"
+    android:targetCellHeight="5"
+  android:minResizeWidth="40dp"
+  android:minResizeHeight="320dp"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/bible_widget_narrow"
+    android:previewImage="@mipmap/ic_launcher"
+  android:resizeMode="none"
+    android:widgetCategory="home_screen" />

@@ -22,14 +22,22 @@ import java.util.Locale
  * Tree stats (leaf count and flower count) are read from HomeWidgetPreferences,
  * which Flutter keeps in sync via the home_widget package.
  */
-class BibleWidget : AppWidgetProvider() {
+open class BibleWidget : AppWidgetProvider() {
+
+    protected open fun widgetLayoutRes(): Int = R.layout.bible_widget
+
+    protected open fun compactMode(): Boolean = false
 
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        for (id in appWidgetIds) updateWidget(context, appWidgetManager, id)
+        val layoutRes = widgetLayoutRes()
+        val compact = compactMode()
+        for (id in appWidgetIds) {
+            updateWidget(context, appWidgetManager, id, layoutRes, compact)
+        }
     }
 
     companion object {
@@ -44,29 +52,38 @@ class BibleWidget : AppWidgetProvider() {
 
         // ── Date formatters ────────────────────────────────────────────
         private val DISPLAY_DATE_FORMAT = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault())
+        private const val TALL_THIN_HEIGHT_RATIO = 1.2
 
         fun updateWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int,
+            layoutRes: Int = R.layout.bible_widget,
+            compactMode: Boolean = false,
         ) {
             val now         = Date()
             val displayDate = DISPLAY_DATE_FORMAT.format(now)
+            val hasReadToday = ReadingTracker.hasReadToday(context)
 
             // ── Streak ─────────────────────────────────────────────────
             val streak = ReadingTracker.getStreak(context)
 
             // ── Background mood (still driven by reading state + time) ─
-            val state      = CharacterState.current(ReadingTracker.hasReadToday(context))
+            val state      = CharacterState.current(hasReadToday)
             val flashPhase = state == CharacterState.DEJECTED && FlashPhaseTracker.get(context)
 
             // ── Build RemoteViews ──────────────────────────────────────
-            val views = RemoteViews(context.packageName, R.layout.bible_widget).apply {
+            val views = RemoteViews(context.packageName, layoutRes).apply {
 
                 // Header
                 setTextViewText(R.id.widget_date_label, displayDate)
                 setInt(R.id.widget_root, "setBackgroundResource",
                     state.backgroundDrawableRes(flashPhase))
+                val preferPoplar = isTallThinWidget(appWidgetManager, appWidgetId)
+                setImageViewResource(
+                    R.id.widget_tree_image,
+                    resolveTreeImageRes(context, state, preferPoplar),
+                )
 
                 // Streak
                 if (streak > 0) {
@@ -77,17 +94,23 @@ class BibleWidget : AppWidgetProvider() {
                     setViewVisibility(R.id.widget_streak, android.view.View.GONE)
                 }
 
-                // ── Water: open Bible reading ──────────────────────────
+                // ── Water: open Daily Text ─────────────────────────────
                 setOnClickPendingIntent(
                     R.id.widget_btn_water,
                     appIntent(context, appWidgetId, 1000, SCREEN_READING),
                 )
 
-                // ── Feed: open activity chooser ────────────────────────
+                // ── Feed: open Bible Reading ────────────────────────────
                 setOnClickPendingIntent(
                     R.id.widget_btn_feed,
                     appIntent(context, appWidgetId, 2000, SCREEN_FEED),
                 )
+
+                if (compactMode || !hasReadToday) {
+                    setViewVisibility(R.id.widget_btn_feed, android.view.View.GONE)
+                } else {
+                    setViewVisibility(R.id.widget_btn_feed, android.view.View.VISIBLE)
+                }
             }
 
             // Flash alarm management
@@ -95,6 +118,49 @@ class BibleWidget : AppWidgetProvider() {
             else FlashAlarmReceiver.cancel(context)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        private fun resolveTreeImageRes(
+            context: Context,
+            state: CharacterState,
+            preferPoplar: Boolean,
+        ): Int {
+            // Tall/thin widgets prefer poplar-style art.
+            // Wider widgets prefer legacy named trees first so those assets are visible.
+            val names = if (preferPoplar) {
+                preferredPoplarTreeNames(state) + listOf(state.photoDrawableName) + state.photoDrawableFallbackNames
+            } else {
+                state.photoDrawableFallbackNames + listOf(state.photoDrawableName)
+            }
+            for (name in names) {
+                val photoResId = context.resources.getIdentifier(
+                    name,
+                    "drawable",
+                    context.packageName,
+                )
+                if (photoResId != 0) return photoResId
+            }
+            return state.drawableRes
+        }
+
+        private fun isTallThinWidget(
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int,
+        ): Boolean {
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val minWidthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+            val minHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+            if (minWidthDp <= 0 || minHeightDp <= 0) return false
+            return minHeightDp.toDouble() / minWidthDp.toDouble() >= TALL_THIN_HEIGHT_RATIO
+        }
+
+        private fun preferredPoplarTreeNames(state: CharacterState): List<String> = when (state) {
+            CharacterState.SATISFIED,
+            CharacterState.HAPPY,
+            CharacterState.NEUTRAL -> listOf("poplar_version")
+            CharacterState.CONCERNED,
+            CharacterState.SAD,
+            CharacterState.DEJECTED -> listOf("poplar_moody")
         }
 
         /** Builds a [PendingIntent] that starts [MainActivity] with [screen] as an extra. */

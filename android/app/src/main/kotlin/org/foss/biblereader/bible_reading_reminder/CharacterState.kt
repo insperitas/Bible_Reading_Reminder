@@ -26,6 +26,26 @@ enum class CharacterState {
             DEJECTED  -> R.drawable.ic_elijah_dejected
         }
 
+    val photoDrawableName: String
+        get() = when (this) {
+            SATISFIED -> "tree_photo_satisfied"
+            HAPPY     -> "tree_photo_happy"
+            NEUTRAL   -> "tree_photo_neutral"
+            CONCERNED -> "tree_photo_concerned"
+            SAD       -> "tree_photo_sad"
+            DEJECTED  -> "tree_photo_dejected"
+        }
+
+    val photoDrawableFallbackNames: List<String>
+        get() = when (this) {
+            SATISFIED -> listOf("full_healthy", "single_tree_isoltaed")
+            HAPPY     -> listOf("full_healthy", "single_tree_isoltaed")
+            NEUTRAL   -> listOf("single_tree_isoltaed", "moody")
+            CONCERNED -> listOf("moody", "autumn_tree")
+            SAD       -> listOf("autumn_tree", "silhouette")
+            DEJECTED  -> listOf("wilting", "silhouette")
+        }
+
     fun backgroundDrawableRes(flashPhase: Boolean = false): Int = when (this) {
         SATISFIED -> R.drawable.widget_background_satisfied
         HAPPY     -> R.drawable.widget_background

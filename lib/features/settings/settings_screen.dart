@@ -88,9 +88,11 @@ class _SettingsScreenState extends State<SettingsScreen>
           );
         }
       } else if (screen == 'reading') {
-        _openActivity(context, ActivityType.bibleReading);
+        // Widget "water" action: open Daily Text.
+        _openActivity(context, ActivityType.dailyText);
       } else if (screen == 'feed') {
-        _showActivityChooser(context);
+        // Widget "feed" action: open Bible Reading.
+        _openActivity(context, ActivityType.bibleReading);
       }
     } catch (_) {
       // MethodChannel not available (e.g. tests or non-Android): ignore.
